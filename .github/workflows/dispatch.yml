@@ -1,7 +1,7 @@
 name: Dispatch
 on:
-  created:
-  deleted:
+  create:
+  delete:
 
 jobs:
   dispatch:
