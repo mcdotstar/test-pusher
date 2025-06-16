@@ -14,21 +14,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Construct creation payload
-        if: github.event.created
-        shell: bash
-        run: echo "REMOVE=0" >> "${GITHUB_ENV}"
-        
-      - name: Construct deletion payload
-        if: github.event.deleted
-        shell: bash
-        run: echo "REMOVE=1" >> "${GITHUB_ENV}"
-        
-      - name: Extract referenced tag
         shell: bash
         run: |
-          reference=${{ github.event.ref }}
-          refarray=(${reference//// })
-          echo "TAG=${refarray[2]}" >> "${GITHUB_ENV}"
+          echo "${GITHUB_EVENT_NAME}"
+          REMOVE=$([ "${GITHUB_EVENT_NAME}" == "delete" ] && echo "1" || echo "0" )
+          echo "REMOVE=${REMOVE}" >> "${GITHUB_ENV}"
+          echo "TAG=${{ github.event.ref }}" >> "${GITHUB_ENV}"
         
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v3
