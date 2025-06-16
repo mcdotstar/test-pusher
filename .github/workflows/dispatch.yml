@@ -29,10 +29,14 @@ jobs:
           refarray=(${reference//// })
           echo "TAG=${refarray[2]}" >> "${GITHUB_ENV}"
         
-      - name: Dispatch to workflows
-        run: |
-          curl -H "Accept: application/vnd.github.everest-preview+json" \
-          -H "Authorization: token ${{ secrets.DISPATCH_TOKEN }}" \
-          --request POST \
-          --data '{"event_type": "update_tag", "client_payload": { "remove": "${{ env.REMOVE }}", "tag": "${{ env.TAG }}" }}'\
-          https://api.github.com/repos/${{ matrix.repo }}/dispatches
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.RECEIVER_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: update_tag
+          client-payload: |-
+            {
+              "remove": "${{ env.REMOVE }}",
+              "tag": "${{ env.TAG }}"
+            }
