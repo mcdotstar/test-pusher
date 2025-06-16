@@ -1,10 +1,11 @@
 name: Dispatch
 on:
-  push:
+  created:
+  deleted:
 
 jobs:
   dispatch:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.event.ref_type == 'tag'
     name: Dispatch tag
     runs-on: ubuntu-latest
     strategy:
