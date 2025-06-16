@@ -1,0 +1,38 @@
+name: Dispatch
+on:
+  push:
+
+jobs:
+  dispatch:
+    if: startsWith(github.ref, 'refs/tags/')
+    name: Dispatch tag
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ['mcdotstar/test-receiver']
+    timeout-minutes: 5
+    steps:
+      - name: Construct creation payload
+        if: github.event.created
+        shell: bash
+        run: echo "REMOVE=0" >> "${GITHUB_ENV}"
+        
+      - name: Construct deletion payload
+        if: github.event.deleted
+        shell: bash
+        run: echo "REMOVE=1" >> "${GITHUB_ENV}"
+        
+      - name: Extract referenced tag
+        shell: bash
+        run: |
+          reference=${{ github.event.ref }}
+          refarray=(${reference//// })
+          echo "TAG=${refarray[2]}" >> "${GITHUB_ENV}"
+        
+      - name: Dispatch to workflows
+        run: |
+          curl -H "Accept: application/vnd.github.everest-preview+json" \
+          -H "Authorization: token ${{ secrets.DISPATCH_TOKEN }}" \
+          --request POST \
+          --data '{"event_type": "update_tag", "client_payload": { "remove": "${{ env.REMOVE }}", "tag": "${{ env.TAG }}" }}'\
+          https://api.github.com/repos/${{ matrix.repo }}/dispatches
